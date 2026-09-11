@@ -1,0 +1,95 @@
+Phase 4A implemented: HuggingFace embeddings
+
+Files created or modified
+- backend/requirements.txt
+- backend/app/main.py
+- backend/app/services/embedding_service.py
+
+What was added
+- backend/requirements.txt
+  - Added:
+    - langchain-huggingface>=0.3.0,<1.0.0
+    - sentence-transformers>=5.0.0,<6.0.0
+
+- backend/app/services/embedding_service.py
+  - Added a dedicated embedding service that:
+    - initializes the HuggingFace embedding model once,
+    - accepts chunk documents from Phase 3,
+    - generates embeddings for each chunk,
+    - preserves chunk metadata (source_filename, page_number, text),
+    - provides a method for embedding later user queries.
+
+- backend/app/main.py
+  - Added a temporary POST /test-embeddings endpoint
+  - The endpoint:
+    1. accepts a PDF upload,
+    2. runs Phase 2 PDF extraction,
+    3. runs Phase 3 chunking,
+    4. generates embeddings,
+    5. returns:
+       - total_chunks
+       - embedding_dimension
+       - a preview of the first few embedding vectors
+       - page number for each tested chunk
+
+Embedding model chosen
+- sentence-transformers/all-MiniLM-L6-v2
+
+Why this model
+- lightweight enough for local development,
+- reliable for semantic similarity tasks,
+- commonly used for simple RAG-style document search.
+
+What an embedding represents
+An embedding is a numerical vector that captures the semantic meaning of a chunk of text.
+
+In simple terms:
+- chunks with similar meaning end up closer together in vector space,
+- this is what later phases will use for semantic retrieval and similarity search.
+
+Exact dependency installation commands
+From the project root:
+
+cd "c:\Users\yrish\OneDrive\Desktop\AI Document Assistant"
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r backend\requirements.txt
+
+Exact backend run command
+Run from the project root:
+
+cd "c:\Users\yrish\OneDrive\Desktop\AI Document Assistant"
+.\.venv\Scripts\Activate.ps1
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+How to test /test-embeddings in Swagger
+1. Start the backend with the command above.
+2. Open: http://127.0.0.1:8000/docs
+3. Find: POST /test-embeddings
+4. Click Try it out
+5. Upload a PDF
+6. Click Execute
+
+You should receive JSON like:
+{
+  "filename": "example.pdf",
+  "total_chunks": 6,
+  "embedding_dimension": 384,
+  "chunks": [
+    {
+      "page_number": 1,
+      "source_filename": "example.pdf",
+      "preview": "Some chunk text...",
+      "embedding_preview": [0.123, -0.456, 0.789, ...]
+    }
+  ]
+}
+
+This lets you verify that:
+- chunks were generated,
+- embeddings were created,
+- metadata (page_number, source_filename) is preserved,
+- the embedding vectors are being produced in a lightweight preview form.
+
+Stop here
+I have stopped after Phase 4A, as requested.
