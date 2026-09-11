@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import './App.css'
 
 function App() {
@@ -8,6 +9,15 @@ function App() {
   const [sources, setSources] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0]
+    setFile(selectedFile || null)
+
+    if (selectedFile) {
+      setError('')
+    }
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -54,56 +64,94 @@ function App() {
 
   return (
     <div className="app-shell">
-      <h1>AI Document Assistant</h1>
+      <div className="app-card">
+        <header className="page-header">
+          <div>
+            <p className="eyebrow">AI-powered document search</p>
+            <h1>AI Document Assistant</h1>
+          </div>
+        </header>
 
-      <form onSubmit={handleSubmit} className="query-form">
-        <label className="field-label">
-          PDF File
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={(event) => setFile(event.target.files[0])}
-          />
-        </label>
+        <form onSubmit={handleSubmit} className="query-form">
+          <label className="field-label">
+            <span className="label-text">PDF File</span>
+            <div className="upload-box">
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+              />
+            </div>
+          </label>
 
-        <label className="field-label">
-          Question
-          <textarea
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            rows="4"
-            placeholder="Ask a question about the PDF"
-          />
-        </label>
+          {file && (
+            <div className="selected-file">
+              <span className="selected-file-label">Selected PDF</span>
+              <strong>{file.name}</strong>
+            </div>
+          )}
 
-        <button type="submit" disabled={loading}>
-          {loading ? 'Loading...' : 'Ask Question'}
-        </button>
-      </form>
+          <label className="field-label">
+            <span className="label-text">Question</span>
+            <textarea
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              rows="4"
+              placeholder="Ask a question about the PDF"
+            />
+          </label>
 
-      {error && <div className="error-box">{error}</div>}
+          <button type="submit" disabled={loading} className="primary-button">
+            {loading ? (
+              <span className="button-content">
+                <span className="spinner" aria-hidden="true" />
+                Loading...
+              </span>
+            ) : (
+              'Ask Question'
+            )}
+          </button>
+        </form>
 
-      {answer && (
-        <div className="result-box">
-          <h2>Answer</h2>
-          <p>{answer}</p>
-        </div>
-      )}
+        {!loading && !answer && !error && sources.length === 0 && (
+          <div className="empty-state">
+            Upload a PDF and ask a question to get started.
+          </div>
+        )}
 
-      {sources.length > 0 && (
-        <div className="result-box">
-          <h2>Sources</h2>
-          <ul>
-            {sources.map((source, index) => (
-              <li key={`${source.source_filename}-${source.page_number}-${index}`}>
-                <strong>{source.source_filename}</strong> — Page {source.page_number}
-                <div>Score: {source.score}</div>
-                <div>{source.preview}</div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        {loading && (
+          <div className="loading-state">
+            Searching your document and generating an answer...
+          </div>
+        )}
+
+        {error && <div className="error-box">{error}</div>}
+
+        {answer && (
+          <div className="result-box answer-box">
+            <h2>Answer</h2>
+            <div className="markdown-content">
+              <ReactMarkdown>{answer}</ReactMarkdown>
+            </div>
+          </div>
+        )}
+
+        {sources.length > 0 && (
+          <div className="result-box">
+            <h2>Sources</h2>
+            <ul className="sources-list">
+              {sources.map((source, index) => (
+                <li key={`${source.source_filename}-${source.page_number}-${index}`} className="source-item">
+                  <div className="source-header">
+                    <strong>{source.source_filename}</strong>
+                    <span>Page {source.page_number}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
