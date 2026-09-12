@@ -4,6 +4,11 @@ venv/
 
 # Environment variables
 .env
+backend/.env
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
 
 # Python cache
 __pycache__/
